@@ -1,0 +1,31 @@
+# Google Cloud Build configuration for Cloud Run deployment
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/x402-facilitator:$COMMIT_SHA', '.']
+  
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/x402-facilitator:$COMMIT_SHA']
+  
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'x402-facilitator'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/x402-facilitator:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '3005'
+      - '--set-env-vars'
+      - 'PAYMENT_RECIPIENT=BaM3m2Yk35BeMtKybTJ8DKcRvK3BL5dD7Pp1FMyoVDDE,NETWORK=solana-devnet,CORS_ORIGIN=*'
+
+images:
+  - 'gcr.io/$PROJECT_ID/x402-facilitator:$COMMIT_SHA'
